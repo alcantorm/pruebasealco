@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <title>Inventario de Productos</title>
+  <style>
+  
+  </style>
+</head>
+<body>
+
+<center><h2>Inventario de Productos SEALCO</h2></center>
+
+<button onclick="mostrarFormulario()">Crear Producto</button>
+
+<table id="productTable">
+  <tr>
+    <th>ID</th>
+    <th>Nombre</th>
+    <th>Cantidad</th>
+    <th>Acciones</th>
+  </tr>
+</table>
+
+<div id="formulario" style="display:none;">
+  <h3>Crear/Actualizar Producto</h3>
+  <label>ID:</label>
+  <input type="text" id="productId">
+  <br>
+  <label>Nombre:</label>
+  <input type="text" id="productName">
+  <br>
+  <label>Cantidad:</label>
+  <input type="number" id="productQuantity">
+  <br>
+  <button onclick="guardarProducto()">Guardar</button>
+  <button onclick="cancelar()">Cancelar</button>
+</div>
+
+<script>
+  // Obtener la referencia a la tabla y al formulario
+  const productTable = document.getElementById('productTable');
+  const formulario = document.getElementById('formulario');
+
+  // Función para mostrar el formulario de creación/actualización
+  function mostrarFormulario() {
+    formulario.style.display = 'block';
+  }
+
+  // Función para ocultar el formulario
+  function cancelar() {
+    formulario.style.display = 'none';
+  }
+
+  // Función para guardar un producto en la tabla y en el almacenamiento local
+  function guardarProducto() {
+    const productId = document.getElementById('productId').value;
+    const productName = document.getElementById('productName').value;
+    const productQuantity = document.getElementById('productQuantity').value;
+
+    // Validar que se ingresen datos
+    if (!productId || !productName || !productQuantity) {
+      alert('Por favor, complete todos los campos.');
+      return;
+    }
+
+    // Obtener los productos almacenados actualmente
+    const productos = JSON.parse(localStorage.getItem('productos')) || [];
+
+    // Verificar si el producto ya existe por ID
+    const index = productos.findIndex(producto => producto.id === productId);
+
+    if (index !== -1) {
+      // Actualizar producto existente
+      productos[index] = { id: productId, nombre: productName, cantidad: productQuantity };
+    } else {
+      // Crear un nuevo producto
+      productos.push({ id: productId, nombre: productName, cantidad: productQuantity });
+    }
+
+    // Almacenar la lista actualizada en el almacenamiento local
+    localStorage.setItem('productos', JSON.stringify(productos));
+
+    // Limpiar la tabla antes de volver a llenarla
+    productTable.innerHTML = '<tr><th>ID</th><th>Nombre</th><th>Cantidad</th><th>Acciones</th></tr>';
+
+    // Llenar la tabla con los productos almacenados
+    productos.forEach(producto => {
+      const row = productTable.insertRow(-1);
+      row.innerHTML = `<td>${producto.id}</td><td>${producto.nombre}</td><td>${producto.cantidad}</td><td>
+                        <button onclick="leerProducto('${producto.id}')">Leer</button>
+                        <button onclick="actualizarProducto('${producto.id}')">Actualizar</button>
+                        <button onclick="eliminarProducto('${producto.id}')">Eliminar</button></td>`;
+    });
+
+    // Ocultar el formulario después de guardar
+    cancelar();
+  }
+
+  // Función para leer un producto por ID
+  function leerProducto(productId) {
+    const productos = JSON.parse(localStorage.getItem('productos')) || [];
+    const producto = productos.find(p => p.id === productId);
+
+    if (producto) {
+      alert(`ID: ${producto.id}\nNombre: ${producto.nombre}\nCantidad: ${producto.cantidad}`);
+    } else {
+      alert('Producto no encontrado.');
+    }
+  }
+
+  // Función para actualizar un producto por ID
+  function actualizarProducto(productId) {
+    const productos = JSON.parse(localStorage.getItem('productos')) || [];
+    const producto = productos.find(p => p.id === productId);
+
+    if (producto) {
+      document.getElementById('productId').value = producto.id;
+      document.getElementById('productName').value = producto.nombre;
+      document.getElementById('productQuantity').value = producto.cantidad;
+
+      // Mostrar el formulario para la actualización
+      mostrarFormulario();
+    } else {
+      alert('Producto no encontrado.');
+    }
+  }
+
+  // Función para eliminar un producto por ID
+  function eliminarProducto(productId) {
+    const productos = JSON.parse(localStorage.getItem('productos')) || [];
+    const index = productos.findIndex(p => p.id === productId);
+
+    if (index !== -1) {
+      // Eliminar el producto de la lista
+      productos.splice(index, 1);
+
+      // Actualizar la lista en el almacenamiento local
+      localStorage.setItem('productos', JSON.stringify(productos));
+
+      // Limpiar la tabla antes de volver a llenarla
+      productTable.innerHTML = '<tr><th>ID</th><th>Nombre</th><th>Cantidad</th><th>Acciones</th></tr>';
+
+      // Llenar la tabla con los productos restantes
+      productos.forEach(producto => {
+        const row = productTable.insertRow(-1);
+        row.innerHTML = `<td>${producto.id}</td><td>${producto.nombre}</td><td>${producto.cantidad}</td><td>
+                          <button onclick="leerProducto('${producto.id}')">Leer</button>
+                          <button onclick="actualizarProducto('${producto.id}')">Actualizar</button>
+                          <button onclick="eliminarProducto('${producto.id}')">Eliminar</button></td>`;
+      });
+    } else {
+      alert('Producto no encontrado.');
+    }
+  }
+
+  // Llenar la tabla con los productos almacenados al cargar la página
+  window.onload = function () {
+    const productos = JSON.parse(localStorage.getItem('productos')) || [];
+
+    productos.forEach(producto => {
+      const row = productTable.insertRow(-1);
+      row.innerHTML = `<td>${producto.id}</td><td>${producto.nombre}</td><td>${producto.cantidad}</td><td>
+                        <button onclick="leerProducto('${producto.id}')">Leer</button>
+                        <button onclick="actualizarProducto('${producto.id}')">Actualizar</button>
+                        <button onclick="eliminarProducto('${producto.id}')">Eliminar</button></td>`;
+    });
+  };
+</script>
+
+</body>
+</html>
